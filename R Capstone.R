@@ -12,7 +12,9 @@ library(readr)
 library(stringr)
 library(tools)
 
-signif_txt <- read_delim("Downloads/signif.txt.tsv","\t", escape_double = FALSE, trim_ws = TRUE)
+#signif_txt <- read_delim("Downloads/signif.txt.tsv","\t", escape_double = FALSE, trim_ws = TRUE)
+signif_txt <- read_delim(paste(getwd(),"signif.txt.tsv",sep = "/"),"\t", escape_double = FALSE, trim_ws = TRUE)
+
 
 #columna data
 as.Date("1/1/-2150",format="%d/%m/-%Y")
@@ -39,6 +41,8 @@ fechas <- c(neg1,pos1)
 #1) FECHAS
 signif_txt$DATE <- fechas
 
+
+###############
 #2) convertir latitud y longitud a clase numerica
 
 
@@ -46,7 +50,7 @@ signif_txt$DATE <- fechas
 #eliminar nombre del pais y los dos puntos
 #y pasar todas las letras mayusculas a minusculas
 
-#----------------------------
+#----------------------------d
 head(signif_txt$LOCATION_NAME)
 tail(signif_txt$LOCATION_NAME)
 
@@ -135,7 +139,8 @@ g2 <- str_remove(g1, ":")
 g3 = unlist(strsplit(g2, split=':  ', fixed=TRUE))[2]
 g3
 
-#----------------------------
+###############d
+#----------------------------d
 
 #creo funcion 
 #uso el vector d que me perimite saber q caso aplico
@@ -227,7 +232,7 @@ View(signif_txt[nas1,])
 #convierto vector loc en minuscula y luego a title case
 loc1 <- toTitleCase(tolower(loc))
 
-#..............
+###############
 #3) CREO FUNCION eq_location_clean
 
 eq_location_clean <- function(signif_txt){
@@ -312,25 +317,29 @@ signif_txt$LOCATION_NAME <- sig
 #generar geom_timeline() 
 #debe generar un grafico donde el eje de las x son las fechas
 #y su alturas pueden ser uno o varios paises
-#se debe incluir escala de Richter
+#se debe incluir escala de Richter y numero de muertes
 
 #ML magnitud es la escala de Richter
 summary(signif_txt$EQ_MAG_ML)
 summary(signif_txt$TOTAL_DEATHS)
 
-##########
-##########
-##########
-##########
-#TRATAMIENTO DE LAS FECHAS
-#
-#fechas negativas
-#
-signif_txt$DATE[neg]
+#variables importantes
+#Country: Pais
+#Location_name: ubicacion
+#eq_mag_ml: escala de Richter
+#Total_deaths: numero de muertes
 
-#
+#EJEMPLO AFGANISTAN
 
+signif_txt$COUNTRY <- as.factor(signif_txt$COUNTRY)
 
+levels(signif_txt$COUNTRY)[1]
 
+af <- signif_txt[which(levels(signif_txt$COUNTRY)[1]==signif_txt$COUNTRY),]
 
+#escala de Richter
+af$EQ_MAG_ML
+
+#numero de muertes
+af$TOTAL_DEATHS
 
