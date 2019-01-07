@@ -343,3 +343,65 @@ af$EQ_MAG_ML
 #numero de muertes
 af$TOTAL_DEATHS
 
+
+##### Ejemplo geom #####z
+library(grid)
+GeomMyPoint <- ggproto("GeomMyPoint", Geom,
+                       required_aes = c("x", "y"),
+                       default_aes = aes(shape = 1),
+                       draw_key = draw_key_point,
+                       draw_panel = function(data, panel_scales, coord) {
+                         ## Transform the data first
+                         coords <- coord$transform(data, panel_scales)
+                         
+                         ## Let's print out the structure of the 'coords' object
+                         str(coords)
+                         
+                         ## Construct a grid grob
+                         pointsGrob(
+                           x = coords$x,
+                           y = coords$y,
+                           pch = coords$shape
+                         )
+                       })
+
+#
+geom_mypoint <- function(mapping = NULL, data = NULL, stat = "identity",
+                         position = "identity", na.rm = FALSE, 
+                         show.legend = NA, inherit.aes = TRUE, ...) {
+  ggplot2::layer(
+    geom = GeomMyPoint, mapping = mapping,  
+    data = data, stat = stat, position = position, 
+    show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
+#
+ggplot(data = worldcup, aes(Time, Shots)) + geom_mypoint()
+
+##### Final Ejemplo geom #####z
+
+#ejemplo con Afganistan
+names(af)
+
+ggplot(data = af,aes(x=DATE,y=EQ_MAG_MS)) + geom_point()
+
+ggplot(data = af,aes(x=DATE,y=seq(1,nrow(af)),size=TOTAL_DEATHS)) + geom_point()
+ggplot(data = af,aes(x=DATE,y=TOTAL_DEATHS,size=TOTAL_DEATHS)) + geom_count()
+ggplot(data = af,aes(x=DATE,y=TOTAL_DEATHS)) 
+
+
+#prueba con data sin NA
+#para numero de muertes
+af1 <- af[-which(is.na(af$TOTAL_DEATHS)),]
+
+g1 <- ggplot(data = af1,aes(x=DATE,y=rep(1,nrow(af1)),size=TOTAL_DEATHS)) + geom_point(color="blue")
+
+#para scala de Richter
+af2 <- af[-which(is.na(af$EQ_MAG_MS)),]
+
+g2 <- ggplot(data = af2,aes(x=DATE,y=rep(1,nrow(af2)),size=EQ_MAG_MS)) + geom_point(alpha=0.3)
+
+g1+geom_point(data = af2,aes(x=DATE,y=rep(1,nrow(af2)),size=EQ_MAG_MS))
+
