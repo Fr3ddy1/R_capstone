@@ -11,6 +11,7 @@
 library(readr)
 library(stringr)
 library(tools)
+library(ggplot2)
 
 #signif_txt <- read_delim("Downloads/signif.txt.tsv","\t", escape_double = FALSE, trim_ws = TRUE)
 signif_txt <- read_delim(paste(getwd(),"signif.txt.tsv",sep = "/"),"\t", escape_double = FALSE, trim_ws = TRUE)
@@ -383,13 +384,16 @@ ggplot(data = worldcup, aes(Time, Shots)) + geom_mypoint()
 ##### Final Ejemplo geom #####z
 
 #ejemplo con Afganistan
+#toda la data
 names(af)
 
-ggplot(data = af,aes(x=DATE,y=EQ_MAG_MS)) + geom_point()
+ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)),size=EQ_MAG_MS)) + geom_point(alpha=0.3,na.rm = TRUE)
 
-ggplot(data = af,aes(x=DATE,y=seq(1,nrow(af)),size=TOTAL_DEATHS)) + geom_point()
-ggplot(data = af,aes(x=DATE,y=TOTAL_DEATHS,size=TOTAL_DEATHS)) + geom_count()
-ggplot(data = af,aes(x=DATE,y=TOTAL_DEATHS)) 
+ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)),size=TOTAL_DEATHS)) + geom_point(alpha=0.3,na.rm = TRUE)
+
+ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)))) + geom_point(aes(size=TOTAL_DEATHS),color="red",alpha=0.3,na.rm = TRUE,show.legend = TRUE) +
+  geom_point(aes(size=EQ_MAG_MS),alpha=0.3,na.rm = TRUE,show.legend = TRUE)
+
 
 
 #prueba con data sin NA
@@ -404,4 +408,144 @@ af2 <- af[-which(is.na(af$EQ_MAG_MS)),]
 g2 <- ggplot(data = af2,aes(x=DATE,y=rep(1,nrow(af2)),size=EQ_MAG_MS)) + geom_point(alpha=0.3)
 
 g1+geom_point(data = af2,aes(x=DATE,y=rep(1,nrow(af2)),size=EQ_MAG_MS))
+
+#######
+#AYUDA
+library(ggplot2)
+library(dplyr)
+library(devtools)
+library(relayer) # devtools::install_github("clauswilke/relayer")
+
+# make aesthetics aware size scale, also use better scaling
+scale_size_c <- function(name = waiver(), breaks = waiver(), labels = waiver(), 
+                         limits = NULL, range = c(1, 6), trans = "identity", guide = "legend", aesthetics = "size") 
+{
+  continuous_scale(aesthetics, "area", scales::rescale_pal(range), name = name, 
+                   breaks = breaks, labels = labels, limits = limits, trans = trans, 
+                   guide = guide)
+}
+
+
+lev <- c("A", "B", "C", "D")
+
+nodes <- data.frame(
+  ord = c(1,1,1,2,2,3,3,4),
+  brand = factor(c("A", "B", "C", "B", "C", "D", "B", "D"), levels=lev), 
+  thick = c(16, 9, 9, 16, 4, 1, 4, 1)
+)
+
+edge <- data.frame(
+  ord1 = c(1, 1, 2, 3),
+  brand1 = factor(c("C", "A", "B", "B"), levels = lev),
+  ord2 = c(2, 2, 3, 4),
+  brand2 = c("C", "B", "B", "D"),
+  N1 = c(2, 1, 2, 1),
+  N2 = c(5, 5, 2, 1)
+)
+
+ggplot() + 
+  (geom_segment(
+    data = edge,
+    aes(x = ord1, y = brand1, xend = ord2, yend = brand2, edge_size = N2/N1), 
+    color = "blue"
+  ) %>% rename_geom_aes(new_aes = c("size" = "edge_size"))) +
+  (geom_point(
+    data = nodes,
+    aes(x = ord, y = brand, node_size = thick),
+    color = "black", shape = 16
+  ) %>% rename_geom_aes(new_aes = c("size" = "node_size"))) + 
+  scale_x_continuous(
+    limits = c(1, 4),
+    breaks = 0:4,
+    minor_breaks = NULL
+  ) +
+  scale_size_c(
+    aesthetics = "edge_size",
+    breaks = 1:5,
+    name = "edge size",
+    guide = guide_legend(keywidth = grid::unit(1.2, "cm"))
+  )  + 
+  scale_size_c(
+    aesthetics = "node_size",
+    trans = "sqrt",
+    breaks = c(1, 4, 9, 16),
+    name = "node size"
+  )  + 
+  ylim(lev) + theme_bw()
+
+#OTRA MANERA
+ggplot(mtcars, aes(x = disp
+                   , y = mpg)) +
+  ##region for high mpg 
+  geom_rect(aes(linetype = "High MPG")
+            , xmin = min(mtcars$disp)-5
+            , ymax = max(mtcars$mpg) + 2
+            , fill = NA
+            , xmax = mean(range(mtcars$disp))
+            , ymin = 25
+            , col = "black") + 
+  ## test diff region
+  geom_rect(aes(linetype = "Other Region")
+            , xmin = 300
+            , xmax = 400
+            , ymax = 30
+            , ymin = 25
+            , fill = NA
+            , col = "black") +
+  geom_point(aes(col = factor(cyl)
+                 , shape = factor(vs))
+             , size = 3) +
+  scale_color_brewer(name = "Cylinders"
+                     , palette = "Set1") +
+  scale_shape(name = "V/S") +
+  scale_linetype_manual(values = c("High MPG" = "dotted"
+                                   , "Other Region" = "dashed")
+                        , name = "Region")
+
+#OTRA OPCION
+d <- data.frame(Number = rnorm(12,100,20), 
+                Treatment = rep(c("A","B","C", "D"), each = 3))
+av <- aggregate(d["Number"], d["Treatment"], mean)
+
+ggplot(data = d, aes(y = Number, x = Treatment)) + 
+  geom_point(shape = 1, size = 6,  color = "grey50") +
+  geom_point(data=av, shape = 4) +
+  theme_bw()
+
+#
+ggplot(data = d, aes(y = Number, x = Treatment)) + 
+  geom_point(aes(shape = "1", size = "6",  color = "grey50")) +
+  geom_point(data=av, aes(shape = "4")) +
+  theme_bw() +
+  scale_shape_manual(name = "", values = c(1,4), labels = c("observed values", "mean")) +
+  scale_size_manual(name = "", values = c(6,1), labels = c("observed values", "mean")) +
+  scale_color_manual(name = "", values = c("grey50","black"), 
+                     labels = c("observed values", "mean")) +
+  theme(legend.position = "top",
+        legend.key = element_rect(color = NA))
+
+#
+
+av$Aggregated <- "mean"
+d$Aggregated <- "observed value"
+d <- rbind(d, av)
+
+ggplot(data = d, aes(y = Number, x = Treatment, 
+                     shape=Aggregated, size=Aggregated, colour=Aggregated)) + 
+  geom_point() 
+
+
+
+#
+#
+#
+ggplot(mtcars, aes(x = disp
+                   , y = mpg)) +
+  geom_point(aes(col = factor(cyl)
+                 , shape = factor(vs))
+             , size = 3) +
+  scale_color_brewer(name = "Cylinders"
+                     , palette = "Set1") +
+  scale_shape(name = "V/S") 
+  
 
