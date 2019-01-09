@@ -538,14 +538,35 @@ ggplot(data = d, aes(y = Number, x = Treatment,
 
 #
 #
-#
+#probar esta!!
 ggplot(mtcars, aes(x = disp
                    , y = mpg)) +
   geom_point(aes(col = factor(cyl)
                  , shape = factor(vs))
              , size = 3) +
-  scale_color_brewer(name = "Cylinders"
-                     , palette = "Set1") +
-  scale_shape(name = "V/S") 
+  scale_color_brewer(name = "Cylinders") +
+  scale_shape(name = "V/S") +
+  theme(legend.position = "bottom")
   
+
+#
+  ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)))) + 
+  geom_point(aes(size=(EQ_MAG_MS),col=(TOTAL_DEATHS)),alpha=0.3,na.rm = TRUE,show.legend = TRUE) +
+    geom_hline(yintercept=1,color = "gray")+
+    theme_classic()+
+    theme(legend.position = "bottom",axis.title.y=element_blank(),
+          panel.grid = element_blank(),
+          #axis.title = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.line.y = element_blank(),
+          panel.background = element_blank()) 
+
+  
+  
+  ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)))) + 
+    geom_point(aes(size=(EQ_MAG_MS),col=(TOTAL_DEATHS)),alpha=0.3,na.rm = TRUE,show.legend = TRUE) +
+    theme_classic(legend.position = "bottom")
+
+
 
