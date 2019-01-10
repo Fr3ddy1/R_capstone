@@ -549,10 +549,11 @@ ggplot(mtcars, aes(x = disp
   theme(legend.position = "bottom")
   
 
-#
+#GRAFICO OBTENIDO MUY PARECIDO AL DE COURSERA
   ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)))) + 
   geom_point(aes(size=(EQ_MAG_MS),col=(TOTAL_DEATHS)),alpha=0.3,na.rm = TRUE,show.legend = TRUE) +
     geom_hline(yintercept=1,color = "gray")+
+    #geom_text(aes(y = rep(1,nrow(af)), label = LOCATION_NAME, size=3, col="white"))+
     theme_classic()+
     theme(legend.position = "bottom",axis.title.y=element_blank(),
           panel.grid = element_blank(),
@@ -562,11 +563,19 @@ ggplot(mtcars, aes(x = disp
           axis.line.y = element_blank(),
           panel.background = element_blank()) 
 
+  #AHORA SE DEBE COLOCAR NOMBRES A LOS PUNTOS DE MAYOR IMPORTANCIA
+  #TANTOS COMO ESPECIFIQUE EL USUARIO "NMAX"
+  #DEBO COLOCAR LOCATION_NAME
   
+  #af ordenada por EQ_MAG_MS
+  af1 <- af[order(af$EQ_MAG_MS,decreasing = TRUE),]
+  #quito NA
+  af1 <- af1[-which(is.na(af1$EQ_MAG_MS)),]
   
-  ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)))) + 
-    geom_point(aes(size=(EQ_MAG_MS),col=(TOTAL_DEATHS)),alpha=0.3,na.rm = TRUE,show.legend = TRUE) +
-    theme_classic(legend.position = "bottom")
+  #eljio 6 primeros , este valor debe ser reactivo
+  head(af1$LOCATION_NAME)
+  
+
 
 
 
