@@ -553,7 +553,10 @@ ggplot(mtcars, aes(x = disp
   ggplot(data = af,aes(x=DATE,y=rep(1,nrow(af)))) + 
   geom_point(aes(size=(EQ_MAG_MS),col=(TOTAL_DEATHS)),alpha=0.3,na.rm = TRUE,show.legend = TRUE) +
     geom_hline(yintercept=1,color = "gray")+
-    #geom_text(aes(y = rep(1,nrow(af)), label = LOCATION_NAME, size=3, col="white"))+
+    #geom_text(aes(x=DATE, label = LOCATION_NAME, size=3, col="white"))+
+    annotate("text", x = af$DATE[10], y = 1.001,
+             label = "temblor", parse = TRUE)+
+    
     theme_classic()+
     theme(legend.position = "bottom",axis.title.y=element_blank(),
           panel.grid = element_blank(),
