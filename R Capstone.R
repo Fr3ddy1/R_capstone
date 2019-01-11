@@ -555,7 +555,9 @@ ggplot(mtcars, aes(x = disp
     geom_hline(yintercept=1,color = "gray")+
     #geom_text(aes(x=DATE, label = LOCATION_NAME, size=3, col="white"))+
     annotate("text", x = af$DATE[10], y = 1.001,
-             label = "temblor", parse = TRUE)+
+             label = af$LOCATION_NAME[10], parse = TRUE)+
+    annotate("segment", x = af$DATE[10], xend = af$DATE[10], y = 1, yend = 1.0009,
+             colour = "gray")+
     
     theme_classic()+
     theme(legend.position = "bottom",axis.title.y=element_blank(),
