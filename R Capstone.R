@@ -347,6 +347,7 @@ af$TOTAL_DEATHS
 
 ##### Ejemplo geom #####z
 library(grid)
+library(faraway)
 GeomMyPoint <- ggproto("GeomMyPoint", Geom,
                        required_aes = c("x", "y"),
                        default_aes = aes(shape = 1),
@@ -579,8 +580,46 @@ ggplot(mtcars, aes(x = disp
   
   #eljio 6 primeros , este valor debe ser reactivo
   head(af1$LOCATION_NAME)
-  
 
+    
+##DEFINO GEOM
+  GeomTimeline <- ggproto("GeomTimeline", Geom,
+                         required_aes = c("x", "y","size"),
+                         default_aes = aes(shape = 1,size=1, colour = "black"),
+                         draw_key = draw_key_point,
+                         draw_panel = function(data, panel_scales, coord) {
+                           ## Transform the data first
+                           coords <- coord$transform(data, panel_scales)
+                           
+                           ## Let's print out the structure of the 'coords' object
+                           str(coords)
+                           
+                           ## Construct a grid grob
+                           pointsGrob(
+                             x = coords$x,
+                             y = coords$y,
+                             pch = coords$shape,
+                             size = unit(coords$size,"char"),
+                             gp = grid::gpar(col = coords$colour)
+                           )
+                           
+                         })
+  
+  #
+  geom_timeline <- function(mapping = NULL, data = NULL, stat = "identity",
+                           position = "identity", na.rm = TRUE, 
+                           show.legend = TRUE, inherit.aes = TRUE, ...) {
+    ggplot2::layer(
+      geom = GeomTimeline, mapping = mapping,  
+      data = data, stat = stat, position = position, 
+      show.legend = show.legend, inherit.aes = inherit.aes,
+      params = list(na.rm = na.rm, ...)
+    )
+  }
+  
+  #
+  ggplot(data = af, aes(x=DATE,y=rep(1,nrow(af)))) + geom_timeline(shape=1,size=af$EQ_MAG_MS,color=af$TOTAL_DEATHS)
+  
 
 
 
