@@ -607,7 +607,7 @@ ggplot(mtcars, aes(x = disp
   
   #
   geom_timeline <- function(mapping = NULL, data = NULL, stat = "identity",
-                           position = "identity", na.rm = TRUE, 
+                           position = "identity", na.rm = FALSE, 
                            show.legend = TRUE, inherit.aes = TRUE, ...) {
     ggplot2::layer(
       geom = GeomTimeline, mapping = mapping,  
