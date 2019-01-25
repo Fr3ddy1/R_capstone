@@ -607,8 +607,8 @@ ggplot(mtcars, aes(x = disp
   
   #
   geom_timeline <- function(mapping = NULL, data = NULL, stat = "identity",
-                           position = "identity", na.rm = FALSE, 
-                           show.legend = TRUE, inherit.aes = TRUE, ...) {
+                           position = "identity", na.rm = TRUE, 
+                           show.legend = NA, inherit.aes = TRUE, ...) {
     ggplot2::layer(
       geom = GeomTimeline, mapping = mapping,  
       data = data, stat = stat, position = position, 
@@ -620,6 +620,4 @@ ggplot(mtcars, aes(x = disp
   #
   ggplot(data = af, aes(x=DATE,y=rep(1,nrow(af)))) + geom_timeline(shape=1,size=af$EQ_MAG_MS,color=af$TOTAL_DEATHS)
   
-
-
 
