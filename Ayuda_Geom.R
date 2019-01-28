@@ -144,69 +144,69 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                  })
 
 #defino el otro geom
-# geom_timeline_label <- function(mapping = NULL, 
-#                                 data = NULL, 
-#                                 na.rm = TRUE,
-#                                 show.legend = NA,
-#                                 stat = "identity",
-#                                 position = "identity",
-#                                 inherit.aes = TRUE, ...) {
-#   ggplot2::layer(
-#     geom = GeomTimeLineAnnotation, 
-#     mapping = mapping,
-#     data = data, 
-#     stat = stat, 
-#     position = position,
-#     show.legend = show.legend, 
-#     inherit.aes = inherit.aes,
-#     params = list(na.rm = na.rm, ...)
-#   )
-# }
-# 
+geom_timeline_label <- function(mapping = NULL,
+                                data = NULL,
+                                na.rm = TRUE,
+                                show.legend = NA,
+                                stat = "identity",
+                                position = "identity",
+                                inherit.aes = TRUE, ...) {
+  ggplot2::layer(
+    geom = GeomTimeLineAnnotation,
+    mapping = mapping,
+    data = data,
+    stat = stat,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
 # #
-# GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Geom,
-#                                            #<character vector of required aesthetics>
-#                                            required_aes = c("x", "tags"),
-#                                            #aes(<default values for certain aesthetics>)
-#                                            default_aes = ggplot2::aes(y = 0.5, 
-#                                                                       number = NULL, 
-#                                                                       max_aes = NULL),
-#                                            #<a function used to draw the key in the legend>
-#                                            # draw_key = draw_key_text,
-#                                            ## Function that returns a grid grob that will 
-#                                            ## be plotted (this is where the real work occurs)
-#                                            draw_panel = function(data, panel_scales, coord) {
-#                                              
-#                                              # Transform the data
-#                                              coords <- coord$transform(data, panel_scales)
-#                                              
-#                                              #To create the Earthquake's timeline with annothation we will separate the task in two parts
-#                                              #1) we will locate where the tags should be places and then
-#                                              #2) To add the annotation labels to the layer 
-#                                              
-#                                              #1) Creating the location in the timelines (X-axis) where the location names will be placed
-#                                              Timeline_seg_grobs <- grid::segmentsGrob(x0 = grid::unit(coords$x, "npc"), 
-#                                                                                       y0 = grid::unit(coords$y, "npc"),
-#                                                                                       x1 = grid::unit(coords$x, "npc"), 
-#                                                                                       y1 = grid::unit(coords$y + 0.06/length(unique(coords$y)), "npc"),
-#                                                                                       default.units = "npc",
-#                                                                                       arrow = NULL,
-#                                                                                       name = NULL, 
-#                                                                                       gp = grid::gpar(), 
-#                                                                                       vp = NULL)
-#                                              
-#                                              #2) Adding the text to the grid
-#                                              Earthquake_text_grobs <- grid::textGrob(label = coords$tags, 
-#                                                                                      x = unit(coords$x, "npc"), 
-#                                                                                      y = unit(coords$y + 0.06/length(unique(coords$y)), "npc"),
-#                                                                                      rot = 60, 
-#                                                                                      just = "left",
-#                                                                                      gp = grid::gpar(fontsize = 8))
-#                                              
-#                                              # Plotting the Eartquakes location label over the timeline
-#                                              grid::gTree(children = grid::gList(Timeline_seg_grobs, Earthquake_text_grobs))
-#                                            }
-# )
+GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Geom,
+                                           #<character vector of required aesthetics>
+                                           required_aes = c("x", "label"),
+                                           #aes(<default values for certain aesthetics>)
+                                           default_aes = ggplot2::aes(y = 0.5,
+                                                                      number = NULL,
+                                                                      max_aes = NULL),
+                                           #<a function used to draw the key in the legend>
+                                            #draw_key = draw_key_label,
+                                           ## Function that returns a grid grob that will
+                                           ## be plotted (this is where the real work occurs)
+                                           draw_panel = function(data, panel_scales, coord) {
+
+                                             # Transform the data
+                                             coords <- coord$transform(data, panel_scales)
+
+                                             #To create the Earthquake's timeline with annothation we will separate the task in two parts
+                                             #1) we will locate where the tags should be places and then
+                                             #2) To add the annotation labels to the layer
+
+                                             #1) Creating the location in the timelines (X-axis) where the location names will be placed
+                                             Timeline_seg_grobs <- grid::segmentsGrob(x0 = grid::unit(coords$x, "npc"),
+                                                                                      y0 = grid::unit(coords$y, "npc"),
+                                                                                      x1 = grid::unit(coords$x, "npc"),
+                                                                                      y1 = grid::unit(coords$y + 0.06/length(unique(coords$y)), "npc"),
+                                                                                      default.units = "npc",
+                                                                                      arrow = NULL,
+                                                                                      name = NULL,
+                                                                                      gp = grid::gpar(),
+                                                                                      vp = NULL)
+
+                                             #2) Adding the text to the grid
+                                             Earthquake_text_grobs <- grid::textGrob(label = coords$label,
+                                                                                     x = unit(coords$x, "npc"),
+                                                                                     y = unit(coords$y + 0.06/length(unique(coords$y)), "npc"),
+                                                                                     rot = 60,
+                                                                                     just = "left",
+                                                                                     gp = grid::gpar(fontsize = 8))
+
+                                             # Plotting the Eartquakes location label over the timeline
+                                             grid::gTree(children = grid::gList(Timeline_seg_grobs, Earthquake_text_grobs))
+                                           }
+)
 
 
 
@@ -218,21 +218,31 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
 # }
 
 
+#data sin comprimir
+#por alguna razon no funciona
 filename<-"signif.txt.tsv"
 data3_1 <- eq_location_clean(eq_clean_data(eq_data_read(filename))) %>%
-dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("MEXICO","USA", "JORDAN"))
+dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
 
   
-ggplot(data3) +
-geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+ggplot(data3_1) +
+geom_timeline(aes(x = datetime,  y = COUNTRY,size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 
 
-#probar
+#DATA COMPRIMIDA
+#ESTA ES LA QUE FUNCIONA
+#GRAFICO SIN LEYENDA
 filename<-paste(getwd(),"earthquakes_data.txt.zip",sep = "/")
 data3 <- eq_location_clean(eq_clean_data(eq_data_read(filename))) %>%
-  dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("MEXICO","USA", "JORDAN"))
+  dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
 
 
 ggplot(data3) +
   geom_timeline(aes(x = datetime, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) 
+
+
+#GRAFICO CON LEYENDA
+ggplot(data3) +
+  geom_timeline(aes(x = datetime, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
+  geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
 
