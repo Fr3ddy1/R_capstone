@@ -246,3 +246,37 @@ ggplot(data3) +
   geom_timeline(aes(x = datetime, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
   geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
 
+
+###SEMANA 3 
+#LEAFLET MAP
+library(leaflet)
+
+#ejemplo
+m <- leaflet() %>%
+       addTiles() %>%  # Add default OpenStreetMap map tiles
+       addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+
+m
+
+#mi caso
+#uso data3
+m1 <- leaflet(data = data3) %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=data3$LONGITUDE, lat=data3$LATITUDE, popup=paste(data3$LOCATION_NAME,data3$COUNTRY))
+
+
+m1
+
+#creo funcion
+eq_map <- function(data,annot_col){
+  a <- which(annot_col==names(data))
+  data1 <- as.data.frame(data)
+  leaflet(data = data) %>%
+    addTiles() %>%  # Add default OpenStreetMap map tiles
+    addMarkers(lng=data$LONGITUDE, lat=data$LATITUDE, popup=data1[,a])
+  
+}
+
+names(data3)
+eq_map(data3,"COUNTRY")
+
