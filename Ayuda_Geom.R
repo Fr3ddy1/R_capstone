@@ -273,10 +273,42 @@ eq_map <- function(data,annot_col){
   data1 <- as.data.frame(data)
   leaflet(data = data) %>%
     addTiles() %>%  # Add default OpenStreetMap map tiles
-    addMarkers(lng=data$LONGITUDE, lat=data$LATITUDE, popup=data1[,a])
+    addMarkers(lng=data$LONGITUDE, lat=data$LATITUDE, popup=as.character(data1[,a]))
   
 }
 
 names(data3)
-eq_map(data3,"COUNTRY")
+eq_map(data3,"datetime")
 
+#ejemplo añadir label
+content <- paste(sep = "<br/>",
+                 "<b><a href='http://www.samurainoodle.com'>Samurai Noodle</a></b>",
+                 "606 5th Ave. S",
+                 "Seattle, WA 98138"
+)
+
+leaflet() %>% addTiles() %>%
+  addMarkers(-122.327298, 47.597131, popup = content
+  )
+
+#
+contenido <- paste(sep ="<br/>",paste0("<b>","Location: ","</b>",data3$LOCATION_NAME),
+                     paste0("<b>","Magnitude: ","</b>",data3$EQ_MAG_ML),
+                   paste0("<b>","Total deaths: ","</b>",data3$DEATHS))
+
+
+#nueva data
+data3$pop <- contenido
+
+eq_map(data3,"pop")
+
+#funcion pedida
+eq_create_label <- function(data){
+  data <- as.data.frame(data)
+  contenido <- paste(sep ="<br/>",paste0("<b>","Location: ","</b>",data$LOCATION_NAME),
+                     paste0("<b>","Magnitude: ","</b>",data$EQ_MAG_ML),
+                     paste0("<b>","Total deaths: ","</b>",data$DEATHS))
+  return(contenido)
+}
+
+eq_create_label(data3)
