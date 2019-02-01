@@ -234,6 +234,39 @@ View(signif_txt[nas1,])
 loc1 <- toTitleCase(tolower(loc))
 
 ###############
+#FUNCION eq_clean_data
+eq_clean_data <- function(data){
+  #añado columna fecha
+  data$MONTH[is.na(data$MONTH)] <- "01"
+  data$DAY[is.na(data$DAY)] <- "01"
+
+  #busco los de fecha negativa
+  neg <- which(data$YEAR<0)
+  neg1 <- as.Date(data$DATE[neg],format="%d/%m/-%Y")
+  
+  #los no neg son
+  pos <- which(data$YEAR>0)
+  pos1 <- as.Date(data$DATE[pos],format="%d/%m/%Y")
+  
+  #uno fechas
+  fechas <- c(neg1,pos1)
+  
+  #FECHAS
+  data$DATE <- fechas
+  
+  #lat y lon
+  data$LATITUDE <- as.numeric(data$LATITUDE)
+  
+  data$LONGITUDE <- as.numeric(data$LONGITUDE)
+  
+  return(data)
+  
+}
+
+#realizo pruebas
+data1 <- eq_clean_data(signif_txt)
+
+
 #3) CREO FUNCION eq_location_clean
 
 eq_location_clean <- function(signif_txt){
