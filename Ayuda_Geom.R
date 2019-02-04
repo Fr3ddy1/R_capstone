@@ -96,9 +96,9 @@ geom_timeline <- function(mapping = NULL,
 
 #
 GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
-                                 #<character vector of required aesthetics>
+                                 #Required aesthetics
                                  required_aes = c("x"),
-                                 #aes(<default values for certain aesthetics>)
+                                 #Default aesthetics
                                  default_aes = ggplot2::aes(y = 0.1,
                                                             shape = 21,
                                                             size = 1,
@@ -106,41 +106,31 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                                             alpha = 0.8,
                                                             stroke = 1,
                                                             fill = NA),
-                                 #<a function used to draw the key in the legend>
+                                 #Draw key
                                  draw_key = ggplot2::draw_key_point,
-                                 ## Function that returns a grid grob that will 
-                                 ## be plotted (this is where the real work occurs)
+                                 #Draw Panel
                                  draw_panel = function(data, panel_scales, coord) {
                                    # Transform the data first
                                    coords <- coord$transform(data, panel_scales)
                                    
-                                   #To create the Earthquake's timeline we will separate the task in two parts
-                                   #1) The line over the X-axis from where it will be plotted the Earthquakes as Points
-                                   #2) The points for each Earthquake of a given Country in between two dates (years)
-                                   #The use of the Concept of Grobs
-                                   
-                                   # 1) Creating the X-axis line (timeline)
-                                   Timeline_line_grobs <- grid::polylineGrob(x = grid::unit(rep(c(0, 1),
-                                                                                                length(coords$y)),
-                                                                                            "npc"), 
+                                   #a) Creating the timeline in the x-axis
+                                   Timeline_xaxis <- grid::polylineGrob(x = grid::unit(rep(c(0, 1),length(coords$y)),"npc"), 
                                                                              y = rep(coords$y, each = 2),
                                                                              id.length = rep(2,length(coords$y)),
-                                                                             gp = grid::gpar(col = "black", lwd = 0.3, lty = 1))
+                                                                             gp = grid::gpar(col = "black", lwd = 0.5, lty = 1))
                                    
-                                   # 2) Creating the points for each Earthquake of a Given Country
-                                   Earthquakes_points_grobs <- grid::pointsGrob(
+                                   #b) Creating a point for each Earthquake
+                                   points <- grid::pointsGrob(
                                      x = coords$x,
                                      y = coords$y,
                                      pch = coords$shape,
                                      gp = grid::gpar(col = alpha(coords$colour, coords$alpha), fill = alpha(coords$fill, coords$alpha)
-                                                     #,
-                                                     #lwd = coords$stroke * .stroke / 2),
-                                     #fontsize = coords$size * .pt + coords$stroke * .stroke / 2
+                                      
                                      
                                    ))
                                    
-                                   # Plotting both the Timeline (X-axis) and the Eartquakes Points
-                                   grid::gTree(children = grid::gList(Timeline_line_grobs, Earthquakes_points_grobs))
+                                   #Plotting a) y b)
+                                   grid::gTree(children = grid::gList(Timeline_xaxis, points))
                                  })
 
 #defino el otro geom
@@ -165,27 +155,20 @@ geom_timeline_label <- function(mapping = NULL,
 
 # #
 GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Geom,
-                                           #<character vector of required aesthetics>
+                                           #Required aesthetics
                                            required_aes = c("x", "label"),
-                                           #aes(<default values for certain aesthetics>)
+                                           #Default aesthetics
                                            default_aes = ggplot2::aes(y = 0.5,
                                                                       number = NULL,
                                                                       max_aes = NULL),
-                                           #<a function used to draw the key in the legend>
-                                            #draw_key = draw_key_label,
-                                           ## Function that returns a grid grob that will
-                                           ## be plotted (this is where the real work occurs)
+                                           #Draw panel
                                            draw_panel = function(data, panel_scales, coord) {
 
                                              # Transform the data
                                              coords <- coord$transform(data, panel_scales)
 
-                                             #To create the Earthquake's timeline with annothation we will separate the task in two parts
-                                             #1) we will locate where the tags should be places and then
-                                             #2) To add the annotation labels to the layer
-
-                                             #1) Creating the location in the timelines (X-axis) where the location names will be placed
-                                             Timeline_seg_grobs <- grid::segmentsGrob(x0 = grid::unit(coords$x, "npc"),
+                                             #a) Creating the location where the names will be
+                                             Timeline_loc <- grid::segmentsGrob(x0 = grid::unit(coords$x, "npc"),
                                                                                       y0 = grid::unit(coords$y, "npc"),
                                                                                       x1 = grid::unit(coords$x, "npc"),
                                                                                       y1 = grid::unit(coords$y + 0.06/length(unique(coords$y)), "npc"),
@@ -195,16 +178,16 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
                                                                                       gp = grid::gpar(),
                                                                                       vp = NULL)
 
-                                             #2) Adding the text to the grid
-                                             Earthquake_text_grobs <- grid::textGrob(label = coords$label,
+                                             #2) Adding Text
+                                             text <- grid::textGrob(label = coords$label,
                                                                                      x = unit(coords$x, "npc"),
                                                                                      y = unit(coords$y + 0.06/length(unique(coords$y)), "npc"),
                                                                                      rot = 60,
                                                                                      just = "left",
                                                                                      gp = grid::gpar(fontsize = 8))
 
-                                             # Plotting the Eartquakes location label over the timeline
-                                             grid::gTree(children = grid::gList(Timeline_seg_grobs, Earthquake_text_grobs))
+                                             # Plotting a) and b)
+                                             grid::gTree(children = grid::gList(Timeline_loc, text))
                                            }
 )
 

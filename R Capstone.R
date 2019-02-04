@@ -654,3 +654,18 @@ ggplot(mtcars, aes(x = disp
   ggplot(data = af, aes(x=DATE,y=rep(1,nrow(af)))) + geom_timeline(shape=1,size=af$EQ_MAG_MS,color=af$TOTAL_DEATHS)
   
 
+  #################################
+  #################################
+  #################################
+  ########### SEMANA 4 ############
+  #################################
+  #################################
+  #################################
+  
+  #CREACION DEL PAQUETE
+  #CREO ESQUELETO DE PAQUETE EN NEW PROJECT
+  
+  
+  
+  
+  

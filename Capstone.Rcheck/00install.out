@@ -1,0 +1,7 @@
+* installing *source* package ‘Capstone’ ...
+** R
+** byte-compile and prepare package for lazy loading
+Error in loadNamespace(name) : there is no package called ‘ggplot2’
+Error : unable to load R code in package ‘Capstone’
+ERROR: lazy loading failed for package ‘Capstone’
+* removing ‘/Users/freddytapia/R_capstone/Capstone.Rcheck/Capstone’
