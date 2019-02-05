@@ -1,5 +1,26 @@
-#leo data
-eq_data_read <- function(filename) {
+#' Mastering Software Development in R Specialization Capstone Project
+#' Coursera Capstone Project
+
+#' Read Earthquakes data.
+#'
+#' @param filename A caracter that contains the name of the file with its respective
+#' extension.
+#'
+#' @return This function returns the read data in a "dataframe", "tbl_df", "tbl" format.
+#'
+#' @note This function will generate an error if the filemane is wrong or have a
+#' wrong extension.
+#'
+#' @importFrom readr read_delim
+#' @import dplyr 
+#'
+#' @examples
+#' \dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_read_data(file)
+#' }
+#' @export
+eq_read_data <- function(filename) {
   
   if(!file.exists(filename))
     stop("file '", filename, "' does not exist")
@@ -10,28 +31,37 @@ eq_data_read <- function(filename) {
   
 }
 
-
-#FUNCION eq_clean_data
+#' Function to clean Earthquake dataframe
+#' 
+#' @param data  dataframe obtained from the eq_read_data
+#' @return  dataframe with a new DATE, LATITUDE and LONGITUDE column
+#' @examples
+#' \dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_clean_data(eq_read_data(file))
+#' }
+#'
+#' @export
 eq_clean_data <- function(data){
-  #añado columna fecha
+  #replace NA values
   data$MONTH[is.na(data$MONTH)] <- "01"
   data$DAY[is.na(data$DAY)] <- "01"
   
-  #busco los de fecha negativa
+  #Find negative dates
   neg <- which(data$YEAR<0)
   neg1 <- as.Date(data$DATE[neg],format="%d/%m/-%Y")
   
-  #los no neg son
+  #find positives dates
   pos <- which(data$YEAR>0)
   pos1 <- as.Date(data$DATE[pos],format="%d/%m/%Y")
   
-  #uno fechas
+  #merga dates (positives and negatives)
   fechas <- c(neg1,pos1)
   
-  #FECHAS
+  #Add Date column
   data$DATE <- fechas
   
-  #lat y lon
+  #work with Longitude and Latitude column
   data$LATITUDE <- as.numeric(data$LATITUDE)
   
   data$LONGITUDE <- as.numeric(data$LONGITUDE)
@@ -40,69 +70,75 @@ eq_clean_data <- function(data){
   
 }
 
-#3) CREO FUNCION eq_location_clean
-
-eq_location_clean <- function(signif_txt){
-  #creo vector d con el fin de saber en cuales observaciones hay uno o varios 
-  #":"
+#' Function for title case the Earthquake's Location Data-Name
+#' @param data dataframe with location names written in Uper case
+#' @return  dataframe with Tittle Case Location names
+#' @importFrom stringr str_remove
+#' @importFrom tools toTitleCase
+#'@examples
+#'\dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_location_clean(eq_clean_data(eq_read_data(file)))
+#' }
+#'
+#' @export
+eq_location_clean <- function(data){
+  #find observations with ":"
   d <- c()
   
-  for(i in 1:dim(signif_txt)[1]){
-    d[i] <- length(gregexpr(pattern =':',signif_txt$LOCATION_NAME[i])[[1]])
+  for(i in 1:dim(data)[1]){
+    d[i] <- length(gregexpr(pattern =':',data$LOCATION_NAME[i])[[1]])
   }
   
-  #
-  #uso el vector d que me perimite saber q caso aplico
+  #create vector with the new data location
   loc <- c()
   
-  
-  for(i in 1:dim(signif_txt)[1]){
-    #condicion de obs 2027
+  #separate diferents cases
+  for(i in 1:dim(data)[1]){
+    #local problem
     if(i==2027){
       loc[i] <- "NEW ZEALAND" 
     }else if(i==566 | i==1312 | i==2830 | i==3126 | i==5869){
-      loc[i] <- str_remove(unlist(strsplit(signif_txt$LOCATION_NAME[i], split=':  ', fixed=TRUE))[2], ":")
+      loc[i] <- str_remove(unlist(strsplit(data$LOCATION_NAME[i], split=':  ', fixed=TRUE))[2], ":")
       
     }else if(i==5917){
-      loc[i] <- str_remove( unlist(strsplit(signif_txt$LOCATION_NAME[i], split=':', fixed=TRUE))[2], " ")
+      loc[i] <- str_remove( unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2], " ")
       
     }else{
-      #caso de un ":"
+      #one ":" case
       if(d[i]==1){
-        #en este caso puede ocurrir q tenga un ":" o no tenga nada
-        #verifico esto
-        c <- as.vector(gregexpr(pattern =':',signif_txt$LOCATION_NAME[i])[[1]])
+        # verify if exits one ":" or there is nothing
+        c <- as.vector(gregexpr(pattern =':',data$LOCATION_NAME[i])[[1]])
         
         if(c==-1){
-          #en este caso no hago nada, no hay nada q eliminar
-          loc[i] <- signif_txt$LOCATION_NAME[i]
+          #nothing to eliminate
+          loc[i] <- data$LOCATION_NAME[i]
         }else{
-          #en este caso hay un ":" y procedo con normalidad
-          #condicional para arreglar problema en obs 1492, 1506 y 1705
+          #one ":" case
           if(i==1492 | i==1506 | i==1705){
-            loc[i] <-  str_remove(signif_txt$LOCATION_NAME[i], ":")
+            #local problem
+            loc[i] <-  str_remove(data$LOCATION_NAME[i], ":")
           }else{
-            loc[i] <-  unlist(strsplit(signif_txt$LOCATION_NAME[i], split=':', fixed=TRUE))[2]
+            loc[i] <-  unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2]
           }
         }
-      }else if(d[i]==2){ #caso dos ":"
-        e2 <- signif_txt$LOCATION_NAME[i]
+      }else if(d[i]==2){ #two ":" case
+        e2 <- data$LOCATION_NAME[i]
         e3 <- str_remove(e2, ":")
         loc[i] <- unlist(strsplit(e3, split=':', fixed=TRUE))[2]
         
-      }else if(d[i]==3){ #caso tres ":"
-        g <- signif_txt$LOCATION_NAME[i]
+      }else if(d[i]==3){ #three ":" case
+        g <- data$LOCATION_NAME[i]
         g1 <- str_remove(g, ":")
         g2 <- str_remove(g1, ":")
         loc[i] <- unlist(strsplit(g2, split=':', fixed=TRUE))[2]
         
       }
-    }#final if obs 2027
+    }#final if 
     
-  }#final for creacion nueva col location_name
+  }#final for creation new col location_name
   
-  #ultimo paso
-  #convierto vector loc en minuscula y luego a title case
+  #last step
   loc1 <- toTitleCase(tolower(loc))
   return(loc1)
 }
