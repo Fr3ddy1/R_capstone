@@ -43,28 +43,40 @@ eq_read_data <- function(filename) {
 #'
 #' @export
 eq_clean_data <- function(data){
-  #replace NA values
-  data$MONTH[is.na(data$MONTH)] <- "01"
-  data$DAY[is.na(data$DAY)] <- "01"
+  #select specific columns
+  data <- data[,c(18,20,21,22,3,4,5,6,14,24)]
   
-  #Find negative dates
-  neg <- which(data$YEAR<0)
-  neg1 <- as.Date(data$DATE[neg],format="%d/%m/-%Y")
+  #add new column
+  data$DATE<-NULL
+  data <- unite(data,DATE,YEAR, MONTH, DAY, HOUR)
+  data$DATE <- lubridate::ymd_h(data$DATE)
   
-  #find positives dates
-  pos <- which(data$YEAR>0)
-  pos1 <- as.Date(data$DATE[pos],format="%d/%m/%Y")
+  #data$DATE <- paste(data$DAY,data$MONTH,data$YEAR,sep = "/")
   
-  #merga dates (positives and negatives)
-  fechas <- c(neg1,pos1)
-  
-  #Add Date column
-  data$DATE <- fechas
+  # #replace NA values
+  # data$MONTH[is.na(data$MONTH)] <- "01"
+  # data$DAY[is.na(data$DAY)] <- "01"
+  # 
+  # #Find negative dates
+  # neg <- which(data$YEAR<0)
+  # neg1 <- as.Date(data$DATE[neg],format="%d/%m/-%Y")
+  # 
+  # #find positives dates
+  # pos <- which(data$YEAR>0)
+  # pos1 <- as.Date(data$DATE[pos],format="%d/%m/%Y")
+  # 
+  # #merga dates (positives and negatives)
+  # fechas <- c(neg1,pos1)
+  # 
+  # #Add Date column
+  # data$DATE <- fechas
   
   #work with Longitude and Latitude column
   data$LATITUDE <- as.numeric(data$LATITUDE)
   
   data$LONGITUDE <- as.numeric(data$LONGITUDE)
+  
+  data$DEATHS <- as.numeric(data$DEATHS)
   
   return(data)
   
@@ -140,10 +152,33 @@ eq_location_clean <- function(data){
   
   #last step
   loc1 <- toTitleCase(tolower(loc))
-  return(loc1)
+  
+  data$LOCATION_NAME <- loc1
+  
+  return(data)
 }
 
-#defino geom
+# Function that will use the GeomTimeLine Prototype Function required to Plot a Timeline with the Earthquakes of a given country
+#' @param mapping aesthetic mappings 
+#' @param data dataframe that contains the Earthquake's data
+#' @param na.rm  removes the NA values from the data frame
+#' @param position position adjustment 
+#' @param stat The Layer's statistical transformation 
+#' @param show.legend layer's legend
+#' @param inherit.aes indicate the default aesthetics 
+#' @param ... other arguments
+#' @return Plot an Earthquakes timeline which contains the Earthquakes of a country o countries  between two dates
+#' @import ggplot2
+#' @examples
+#' \dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
+#' dplyr::filter(datetime >= "1986-02-01" & datetime <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
+#' ggplot() +
+#' geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+#' }
+#'
+#' @export
 geom_timeline <- function(mapping = NULL, 
                           data = NULL, 
                           na.rm = TRUE,
@@ -162,7 +197,9 @@ geom_timeline <- function(mapping = NULL,
     params = list(na.rm = na.rm, ...))
 }
 
-#
+#' Function to plot an Earthquake's Location timeline 
+#' The GeomTimeLine will use a dataframe obtained from the function eq_clean_data. 
+#' This Geom will return a plot with the earthquakes of a country or countries between two dates
 GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                  #Required aesthetics
                                  required_aes = c("x"),
@@ -201,7 +238,27 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                    grid::gTree(children = grid::gList(Timeline_xaxis, points))
                                  })
 
-#defino el otro geom
+#' Function that add the Eartquakes's Location labels to an timeline earthquake
+#' @param mapping aesthetic mappings 
+#' @param data dataframe that contains the Earthquake's data
+#' @param na.rm  removes the NA values from the data frame
+#' @param position position adjustment 
+#' @param stat The Layer's statistical transformation 
+#' @param show.legend layer's legend
+#' @param inherit.aes indicate the default aesthetics 
+#' @param ... other arguments
+#' @return Plot an Earthquakes timeline which contains the Earthquakes of a country o countries  between two dates
+#' @import ggplot2
+#' @examples
+#' \dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
+#' dplyr::filter(datetime >= "1986-02-01" & datetime <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
+#' ggplot() +
+#' geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))+
+#' geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
+#'}
+#' @export
 geom_timeline_label <- function(mapping = NULL,
                                 data = NULL,
                                 na.rm = TRUE,
@@ -221,7 +278,8 @@ geom_timeline_label <- function(mapping = NULL,
   )
 }
 
-# #
+#' Function to add labels on a Earthquake's Location timeline 
+#' This Geom will return a plot with the earthquakes of a country or countries between two dates with its respectives names
 GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Geom,
                                            #Required aesthetics
                                            required_aes = c("x", "label"),
@@ -259,19 +317,60 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
                                            }
 )
 
-
-
-#creo funcion
-eq_map <- function(data,annot_col){
-  a <- which(annot_col==names(data))
+#' Function that plot the earthquake Data in an Interactive Map.
+#'
+#' The Earthquakes will be plot using its longitude and latitude information. The user
+#' can select a column in order to obtain information about the earthquake.
+#'
+#' @param data Clean earthquake data.
+#' @param name_col Name of a column which will be use to show information about the earthquake.
+#'
+#' @return This function returns an interactive map.
+#'
+#' @note If an invalid column name is provided, the function provides a warning
+#' and uses the LOCATION_NAME column as teh annotation column.
+#'
+#' @import leaflet
+#'
+#' @examples
+#' \dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
+#' dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(datetime) >= 1980) %>%
+#' eq_map(annot_col = "datetime")
+#' }
+#'
+#' @export
+eq_map <- function(data,name_col){
+  #check
+  if(!(any(data %in% colnames(eq_clean)))) {
+    warning("Invalid Column")
+    annot_col = "datetime"
+  }
+  a <- which(name_col==names(data))
   data1 <- as.data.frame(data)
   leaflet(data = data) %>%
-    addTiles() %>%  # Add default OpenStreetMap map tiles
+    addTiles() %>%  
     addMarkers(lng=data$LONGITUDE, lat=data$LATITUDE, popup=as.character(data1[,a]))
-  
 }
 
-#funcion pedida
+#' Function that creates a popup text for each earthquake.
+#'
+#' This function generates a HTML formatted tag to be used in popups.
+#'
+#' @param data Clean earthquake data.
+#' @return A character vector containing popup text to be used in a leaflet visualization.
+#'
+#' @examples
+#' \dontrun{
+#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' eq_location_clean(eq_clean_data(eq_data_read(file))) %>%
+#' dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(datetime) >= 1980) %>%
+#' dplyr::mutate(popup_text = eq_create_label(.)) %>%
+#'  eq_map(annot_col = "popup_text")
+#' }
+#'
+#' @export
 eq_create_label <- function(data){
   data <- as.data.frame(data)
   contenido <- paste(sep ="<br/>",paste0("<b>","Location: ","</b>",data$LOCATION_NAME),

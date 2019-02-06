@@ -24,8 +24,12 @@ eq_data_read <- function(filename) {
 #pruebo
 data <- eq_data_read("signif.txt.tsv")
 
+data <- eq_read_data("signif.txt.tsv")
+
+
+
 #limpio la data
-eq_clean_data<-function(datafram){
+eq_clean_data_1<-function(datafram){
   COUNTRY <-NULL
   LOCATION_NAME <-NULL
   LATITUDE <-NULL
@@ -53,12 +57,12 @@ eq_clean_data<-function(datafram){
     dplyr::mutate(DEATHS=as.numeric(DEATHS))
   rm(raw_data)
   #returning the cleaned data
-  eq_location_clean(clean_data)
+  eq_location_clean_1(clean_data)
   
 }
 
 #arreglo localizacion
-eq_location_clean<-function(datfram){
+eq_location_clean_1<-function(datfram){
   LOCATION_NAME<-NULL
   datfram = datfram%>%
     dplyr::mutate(LOCATION_NAME=stringi::stri_trans_totitle(LOCATION_NAME))
@@ -67,12 +71,12 @@ eq_location_clean<-function(datfram){
 
 
 #pruebo
-data1 <- eq_clean_data(data)
+data1 <- eq_clean_data_1(data)
 head(data1)
 
 
 #pruebo
-data2 <- eq_location_clean(data1)
+data2 <- eq_location_clean_1(data1)
 
 
 #defino geom
@@ -204,8 +208,8 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
 #data sin comprimir
 #por alguna razon no funciona
 filename<-"signif.txt.tsv"
-data3_1 <- eq_location_clean(eq_clean_data(eq_data_read(filename))) %>%
-dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
+data3_1 <- eq_location_clean_1(eq_clean_data_1(eq_data_read(filename))) %>%
+dplyr::filter(datetime >= "1980-01-01" & datetime <="2016-01-01" & COUNTRY == c("USA","CHILE", "VENEZUELA"))
 
   
 ggplot(data3_1) +
@@ -295,3 +299,45 @@ eq_create_label <- function(data){
 }
 
 eq_create_label(data3)
+
+
+#PRUEBO FUNCIONES DEL ARCHIVO FUNCTIONS.R
+source('~/R_capstone/Capstone/R/functions.R')
+
+#LEO DATA
+#sin comprimir
+file <- "signif.txt.tsv"
+data <- eq_read_data(file)
+
+#comprimido
+file1 <- paste(getwd(),"signif.txt.tsv",sep = "/")
+data. <- eq_read_data(file1)
+
+#LIMPIO DATA
+data1 <- eq_clean_data(data)
+data1. <- eq_clean_data(data.)
+
+data_1 <- eq_clean_data_1(data)
+
+#LIMPIO LOCALIZACIONES
+data2 <- eq_location_clean(data1)
+data2. <- eq_location_clean(data1.)
+
+data_2 <- eq_location_clean(data_1)
+
+#GRAFICO TERREMOTOS SIN NOMBRES
+data3 <- eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
+dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
+
+ggplot(data3) +
+geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+
+data3_1 <- eq_location_clean_1(eq_clean_data_1(eq_read_data(file))) %>%
+  dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
+
+ggplot(data3_1) +
+  geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+
+#GRAFICO TERREMOTOS CON NOMBRES
+
+
