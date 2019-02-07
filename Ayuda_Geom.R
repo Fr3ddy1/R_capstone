@@ -5,6 +5,7 @@ library(dplyr)
 library(stringr)
 library(tools)
 library(ggplot2)
+library(leaflet)
 
 #signif_txt <- read_delim("Downloads/signif.txt.tsv","\t", escape_double = FALSE, trim_ws = TRUE)
 signif_txt <- read_delim(paste(getwd(),"signif.txt.tsv",sep = "/"),"\t", escape_double = FALSE, trim_ws = TRUE)
@@ -233,6 +234,10 @@ ggplot(data3) +
   geom_timeline(aes(x = datetime, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
   geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
 
+ggplot(data3_1) +
+  geom_timeline(aes(x = datetime, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
+  geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
+
 
 ###SEMANA 3 
 #LEAFLET MAP
@@ -300,44 +305,118 @@ eq_create_label <- function(data){
 
 eq_create_label(data3)
 
+##########
+##########
+##########
+##########
+#PRUEBO EJEMPLOS CON DATA DE APOYO
+source('~/R_capstone/Capstone/R/CopyOffunctions.R')
+
+#
+filename<-"signif.txt.tsv"
+data3_1 <- eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(datetime >= "1980-01-01" & datetime <="2016-01-01" & COUNTRY == c("USA","CHILE", "VENEZUELA"))
+
+ggplot(data3_1) +
+  geom_timeline(aes(x = datetime,  y = COUNTRY,size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+
+#
+ggplot(data3_1) +
+  geom_timeline(aes(x = datetime, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
+  geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
+
+
+##########
+##########
+##########
+##########
+#
 
 #PRUEBO FUNCIONES DEL ARCHIVO FUNCTIONS.R
 source('~/R_capstone/Capstone/R/functions.R')
 
 #LEO DATA
 #sin comprimir
-file <- "signif.txt.tsv"
-data <- eq_read_data(file)
-
-#comprimido
-file1 <- paste(getwd(),"signif.txt.tsv",sep = "/")
-data. <- eq_read_data(file1)
+filename<-"signif.txt.tsv"
+#EQ_DATA_READ
+data <- eq_read_data(filename)
 
 #LIMPIO DATA
-data1 <- eq_clean_data(data)
-data1. <- eq_clean_data(data.)
+#EQ_CLEAN_DATA
+data1 <- eq_clean_data(eq_read_data(filename))
 
-data_1 <- eq_clean_data_1(data)
 
 #LIMPIO LOCALIZACIONES
-data2 <- eq_location_clean(data1)
-data2. <- eq_location_clean(data1.)
+#EQ_CLEAN_LOCATION
+data2 <- eq_location_clean(eq_clean_data(eq_read_data(filename)))
 
-data_2 <- eq_location_clean(data_1)
 
 #GRAFICO TERREMOTOS SIN NOMBRES
-data3 <- eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
+#GEOMTIMELINE
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE <="2016-01-01" & COUNTRY == c("USA","CHILE", "VENEZUELA")) %>% 
+ggplot() +
+  geom_timeline(aes(x = DATE,  y = COUNTRY,size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 
-ggplot(data3) +
-geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
-
-data3_1 <- eq_location_clean_1(eq_clean_data_1(eq_read_data(file))) %>%
-  dplyr::filter(datetime >= "1980-01-01" & datetime <="2014-01-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))
-
-ggplot(data3_1) +
-  geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 
 #GRAFICO TERREMOTOS CON NOMBRES
+#GEOMTIMELABEL
+ggplot(data3_1) +
+  geom_timeline(aes(x = DATE, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
+  geom_timeline_label(aes(x = DATE, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
 
+#EQ_MAP
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(DATE) >= 1980) %>%
+eq_map(name_col = "DATE")
+
+#EQ_CREATE_LABEL
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(DATE) >= 1980) %>%
+dplyr::mutate(popup_text = eq_create_label(.)) %>%
+eq_map(name_col = "popup_text")
+
+###
+#DATA COMPRIMIDA
+filename <-"earthquakes_data.txt.zip"
+
+#EQ_DATA_READ
+data <- eq_read_data(filename)
+
+#LIMPIO DATA
+#EQ_CLEAN_DATA
+data1 <- eq_clean_data(eq_read_data(filename))
+
+
+#LIMPIO LOCALIZACIONES
+#EQ_CLEAN_LOCATION
+data2 <- eq_location_clean(eq_clean_data(eq_read_data(filename)))
+
+
+#GRAFICO TERREMOTOS SIN NOMBRES
+#GEOMTIMELINE
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE <="2016-01-01" & COUNTRY == c("USA","CHILE", "VENEZUELA")) %>% 
+  ggplot() +
+  geom_timeline(aes(x = DATE,  y = COUNTRY,size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+
+
+#GRAFICO TERREMOTOS CON NOMBRES
+#GEOMTIMELABEL
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE <="2016-01-01" & COUNTRY == c("USA","CHILE", "VENEZUELA")) %>% 
+  ggplot() +
+  geom_timeline(aes(x = DATE, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
+  geom_timeline_label(aes(x = DATE, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
+
+#EQ_MAP
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(DATE) >= 1980) %>%
+  eq_map(name_col = "DATE")
+
+#EQ_CREATE_LABEL
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(DATE) >= 1980) %>%
+  dplyr::mutate(popup_text = eq_create_label(.)) %>%
+  eq_map(name_col = "popup_text")
 

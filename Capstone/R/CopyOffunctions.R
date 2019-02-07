@@ -42,43 +42,35 @@ eq_read_data <- function(filename) {
 #' }
 #'
 #' @export
-eq_clean_data <- function(data){
-  #select specific columns
-  data <- data[,c(18,20,21,22,3,4,5,6,14,24)]
+eq_clean_data <- function(datafram){
+  COUNTRY <-NULL
+  LOCATION_NAME <-NULL
+  LATITUDE <-NULL
+  LONGITUDE<-NULL
+  YEAR<-NULL
+  MONTH<-NULL
+  DAY<-NULL
+  HOUR<-NULL
+  EQ_MAG_ML <-NULL
+  DEATHS<-NULL
+  datetime<-NULL
+  #raw_data <- readr::read_delim("/Users/rainier/Desktop/CursoR2/capstone/signif.txt.tsv", 
+  #                        col_names=T,delim = "\t",na = "-99")
   
-  #add new column
-  data$DATE<-NULL
-  data <- unite(data,DATE,YEAR, MONTH, DAY, HOUR)
-  data$DATE <- lubridate::ymd_h(data$DATE)
-  
-  #data$DATE <- paste(data$DAY,data$MONTH,data$YEAR,sep = "/")
-  
-  # #replace NA values
-  # data$MONTH[is.na(data$MONTH)] <- "01"
-  # data$DAY[is.na(data$DAY)] <- "01"
-  # 
-  # #Find negative dates
-  # neg <- which(data$YEAR<0)
-  # neg1 <- as.Date(data$DATE[neg],format="%d/%m/-%Y")
-  # 
-  # #find positives dates
-  # pos <- which(data$YEAR>0)
-  # pos1 <- as.Date(data$DATE[pos],format="%d/%m/%Y")
-  # 
-  # #merga dates (positives and negatives)
-  # fechas <- c(neg1,pos1)
-  # 
-  # #Add Date column
-  # data$DATE <- fechas
-  
-  #work with Longitude and Latitude column
-  data$LATITUDE <- as.numeric(data$LATITUDE)
-  
-  data$LONGITUDE <- as.numeric(data$LONGITUDE)
-  
-  data$DEATHS <- as.numeric(data$DEATHS)
-  
-  return(data)
+  raw_data <-datafram 
+  # "subset to the specific columns that will be required..." 
+  clean_data <- raw_data %>%
+    # dplyr::filter(FLAG_TSUNAMI != "Tsu") %>%       # taking out the Tsunami's datapoints
+    dplyr::select(COUNTRY,LOCATION_NAME, LATITUDE, LONGITUDE,YEAR, MONTH, DAY, HOUR, EQ_MAG_ML,DEATHS) %>%
+    dplyr::mutate_each(funs(gsub(".*:", "", LOCATION_NAME)),LOCATION_NAME)%>%
+    dplyr::mutate(LATITUDE= as.numeric(LATITUDE)) %>%
+    dplyr::mutate(LONGITUDE= as.numeric(LONGITUDE))%>%
+    tidyr::unite(datetime, YEAR, MONTH, DAY, HOUR) %>%
+    dplyr::mutate(datetime = lubridate::ymd_h(datetime))%>%
+    dplyr::mutate(DEATHS=as.numeric(DEATHS))
+  rm(raw_data)
+  #returning the cleaned data
+  eq_location_clean(clean_data)
   
 }
 
@@ -94,68 +86,11 @@ eq_clean_data <- function(data){
 #' }
 #'
 #' @export
-eq_location_clean <- function(data){
-  #find observations with ":"
-  d <- c()
-  
-  for(i in 1:dim(data)[1]){
-    d[i] <- length(gregexpr(pattern =':',data$LOCATION_NAME[i])[[1]])
-  }
-  
-  #create vector with the new data location
-  loc <- c()
-  
-  #separate diferents cases
-  for(i in 1:dim(data)[1]){
-    #local problem
-    if(i==2027){
-      loc[i] <- "NEW ZEALAND" 
-    }else if(i==566 | i==1312 | i==2830 | i==3126 | i==5869){
-      loc[i] <- str_remove(unlist(strsplit(data$LOCATION_NAME[i], split=':  ', fixed=TRUE))[2], ":")
-      
-    }else if(i==5917){
-      loc[i] <- str_remove( unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2], " ")
-      
-    }else{
-      #one ":" case
-      if(d[i]==1){
-        # verify if exits one ":" or there is nothing
-        c <- as.vector(gregexpr(pattern =':',data$LOCATION_NAME[i])[[1]])
-        
-        #if(c==-1){
-          #nothing to eliminate
-         # loc[i] <- data$LOCATION_NAME[i]
-        #}else{
-          #one ":" case
-          if(i==1492 | i==1506 | i==1705){
-            #local problem
-            loc[i] <-  str_remove(data$LOCATION_NAME[i], ":")
-          }else{
-            loc[i] <-  unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2]
-          }
-        #}
-      }else if(d[i]==2){ #two ":" case
-        e2 <- data$LOCATION_NAME[i]
-        e3 <- str_remove(e2, ":")
-        loc[i] <- unlist(strsplit(e3, split=':', fixed=TRUE))[2]
-        
-      }else if(d[i]==3){ #three ":" case
-        g <- data$LOCATION_NAME[i]
-        g1 <- str_remove(g, ":")
-        g2 <- str_remove(g1, ":")
-        loc[i] <- unlist(strsplit(g2, split=':', fixed=TRUE))[2]
-        
-      }
-    }#final if 
-    
-  }#final for creation new col location_name
-  
-  #last step
-  loc1 <- toTitleCase(tolower(loc))
-  
-  data$LOCATION_NAME <- loc1
-  
-  return(data)
+eq_location_clean <- function(datfram){
+  LOCATION_NAME<-NULL
+  datfram = datfram%>%
+    dplyr::mutate(LOCATION_NAME=stringi::stri_trans_totitle(LOCATION_NAME))
+  datfram
 }
 
 # Function that will use the GeomTimeLine Prototype Function required to Plot a Timeline with the Earthquakes of a given country
@@ -173,9 +108,9 @@ eq_location_clean <- function(data){
 #' \dontrun{
 #' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-#' dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
+#' dplyr::filter(datetime >= "1986-02-01" & datetime <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
 #' ggplot() +
-#' geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
+#' geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 #' }
 #'
 #' @export
@@ -238,6 +173,7 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                    grid::gTree(children = grid::gList(Timeline_xaxis, points))
                                  })
 
+
 #' Function that add the Eartquakes's Location labels to an timeline earthquake
 #' @param mapping aesthetic mappings 
 #' @param data dataframe that contains the Earthquake's data
@@ -253,10 +189,10 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
 #' \dontrun{
 #' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-#' dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
+#' dplyr::filter(datetime >= "1986-02-01" & datetime <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
 #' ggplot() +
-#' geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))+
-#' geom_timeline_label(aes(x = DATE, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
+#' geom_timeline(aes(x = datetime, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))+
+#' geom_timeline_label(aes(x = datetime, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
 #'}
 #' @export
 geom_timeline_label <- function(mapping = NULL,
@@ -337,14 +273,14 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
 #' \dontrun{
 #' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-#' dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(DATE) >= 1980) %>%
-#' eq_map(name_col = "DATE")
+#' dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(datetime) >= 1980) %>%
+#' eq_map(annot_col = "datetime")
 #' }
 #'
 #' @export
 eq_map <- function(data,name_col){
   #check
-  if(!(any(name_col %in% colnames(data)))) {
+  if(!(any(data %in% colnames(eq_clean)))) {
     warning("Invalid Column")
     annot_col = "datetime"
   }
@@ -365,10 +301,10 @@ eq_map <- function(data,name_col){
 #' @examples
 #' \dontrun{
 #' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
-#' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-#' dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(DATE) >= 1980) %>%
+#' eq_location_clean(eq_clean_data(eq_data_read(file))) %>%
+#' dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(datetime) >= 1980) %>%
 #' dplyr::mutate(popup_text = eq_create_label(.)) %>%
-#'  eq_map(name_col = "popup_text")
+#'  eq_map(annot_col = "popup_text")
 #' }
 #'
 #' @export
