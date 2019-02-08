@@ -12,7 +12,7 @@
 #' wrong extension.
 #'
 #' @importFrom readr read_delim
-#' @import dplyr 
+#' @import dplyr
 #'
 #' @examples
 #' \dontrun{
@@ -21,18 +21,18 @@
 #' }
 #' @export
 eq_read_data <- function(filename) {
-  
+
   if(!file.exists(filename))
     stop("file '", filename, "' does not exist")
   data <- suppressMessages({
     readr::read_delim(filename, delim='\t',progress = FALSE)
   })
   dplyr::tbl_df(data)
-  
+
 }
 
 #' Function to clean Earthquake dataframe
-#' 
+#'
 #' @param data  dataframe obtained from the eq_read_data
 #' @return  dataframe with a new DATE, LATITUDE and LONGITUDE column
 #' @examples
@@ -45,41 +45,41 @@ eq_read_data <- function(filename) {
 eq_clean_data <- function(data){
   #select specific columns
   data <- data[,c(18,20,21,22,3,4,5,6,14,24)]
-  
+
   #add new column
-  data$DATE<-NULL
-  data <- unite(data,DATE,YEAR, MONTH, DAY, HOUR)
+  #data$DATE<-NULL
+  data <- tidyr::unite(data,data$DATE,data$YEAR, data$MONTH, data$DAY, data$HOUR)
   data$DATE <- lubridate::ymd_h(data$DATE)
-  
+
   #data$DATE <- paste(data$DAY,data$MONTH,data$YEAR,sep = "/")
-  
+
   # #replace NA values
   # data$MONTH[is.na(data$MONTH)] <- "01"
   # data$DAY[is.na(data$DAY)] <- "01"
-  # 
+  #
   # #Find negative dates
   # neg <- which(data$YEAR<0)
   # neg1 <- as.Date(data$DATE[neg],format="%d/%m/-%Y")
-  # 
+  #
   # #find positives dates
   # pos <- which(data$YEAR>0)
   # pos1 <- as.Date(data$DATE[pos],format="%d/%m/%Y")
-  # 
+  #
   # #merga dates (positives and negatives)
   # fechas <- c(neg1,pos1)
-  # 
+  #
   # #Add Date column
   # data$DATE <- fechas
-  
+
   #work with Longitude and Latitude column
   data$LATITUDE <- as.numeric(data$LATITUDE)
-  
+
   data$LONGITUDE <- as.numeric(data$LONGITUDE)
-  
+
   data$DEATHS <- as.numeric(data$DEATHS)
-  
+
   return(data)
-  
+
 }
 
 #' Function for title case the Earthquake's Location Data-Name
@@ -97,31 +97,31 @@ eq_clean_data <- function(data){
 eq_location_clean <- function(data){
   #find observations with ":"
   d <- c()
-  
+
   for(i in 1:dim(data)[1]){
     d[i] <- length(gregexpr(pattern =':',data$LOCATION_NAME[i])[[1]])
   }
-  
+
   #create vector with the new data location
   loc <- c()
-  
+
   #separate diferents cases
   for(i in 1:dim(data)[1]){
     #local problem
     if(i==2027){
-      loc[i] <- "NEW ZEALAND" 
+      loc[i] <- "NEW ZEALAND"
     }else if(i==566 | i==1312 | i==2830 | i==3126 | i==5869){
-      loc[i] <- str_remove(unlist(strsplit(data$LOCATION_NAME[i], split=':  ', fixed=TRUE))[2], ":")
-      
+      loc[i] <- stringr::str_remove(unlist(strsplit(data$LOCATION_NAME[i], split=':  ', fixed=TRUE))[2], ":")
+
     }else if(i==5917){
-      loc[i] <- str_remove( unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2], " ")
-      
+      loc[i] <- stringr::str_remove(unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2], " ")
+
     }else{
       #one ":" case
       if(d[i]==1){
         # verify if exits one ":" or there is nothing
         c <- as.vector(gregexpr(pattern =':',data$LOCATION_NAME[i])[[1]])
-        
+
         #if(c==-1){
           #nothing to eliminate
          # loc[i] <- data$LOCATION_NAME[i]
@@ -129,43 +129,43 @@ eq_location_clean <- function(data){
           #one ":" case
           if(i==1492 | i==1506 | i==1705){
             #local problem
-            loc[i] <-  str_remove(data$LOCATION_NAME[i], ":")
+            loc[i] <-  stringr::str_remove(data$LOCATION_NAME[i], ":")
           }else{
             loc[i] <-  unlist(strsplit(data$LOCATION_NAME[i], split=':', fixed=TRUE))[2]
           }
         #}
       }else if(d[i]==2){ #two ":" case
         e2 <- data$LOCATION_NAME[i]
-        e3 <- str_remove(e2, ":")
+        e3 <- stringr::str_remove(e2, ":")
         loc[i] <- unlist(strsplit(e3, split=':', fixed=TRUE))[2]
-        
+
       }else if(d[i]==3){ #three ":" case
         g <- data$LOCATION_NAME[i]
-        g1 <- str_remove(g, ":")
-        g2 <- str_remove(g1, ":")
+        g1 <- stringr::str_remove(g, ":")
+        g2 <- stringr::str_remove(g1, ":")
         loc[i] <- unlist(strsplit(g2, split=':', fixed=TRUE))[2]
-        
+
       }
-    }#final if 
-    
+    }#final if
+
   }#final for creation new col location_name
-  
+
   #last step
-  loc1 <- toTitleCase(tolower(loc))
-  
+  loc1 <- tools::toTitleCase(tolower(loc))
+
   data$LOCATION_NAME <- loc1
-  
+
   return(data)
 }
 
 # Function that will use the GeomTimeLine Prototype Function required to Plot a Timeline with the Earthquakes of a given country
-#' @param mapping aesthetic mappings 
+#' @param mapping aesthetic mappings
 #' @param data dataframe that contains the Earthquake's data
 #' @param na.rm  removes the NA values from the data frame
-#' @param position position adjustment 
-#' @param stat The Layer's statistical transformation 
+#' @param position position adjustment
+#' @param stat The Layer's statistical transformation
 #' @param show.legend layer's legend
-#' @param inherit.aes indicate the default aesthetics 
+#' @param inherit.aes indicate the default aesthetics
 #' @param ... other arguments
 #' @return Plot an Earthquakes timeline which contains the Earthquakes of a country o countries  between two dates
 #' @import ggplot2
@@ -179,26 +179,26 @@ eq_location_clean <- function(data){
 #' }
 #'
 #' @export
-geom_timeline <- function(mapping = NULL, 
-                          data = NULL, 
+geom_timeline <- function(mapping = NULL,
+                          data = NULL,
                           na.rm = TRUE,
                           position = "identity",
                           stat = "identity",
-                          show.legend = NA, 
+                          show.legend = NA,
                           inherit.aes = TRUE, ...) {
   ggplot2::layer(
-    geom = GeomTimeline, 
+    geom = GeomTimeline,
     mapping = mapping,
-    data = data, 
-    stat = stat, 
+    data = data,
+    stat = stat,
     position = position,
-    show.legend = show.legend, 
+    show.legend = show.legend,
     inherit.aes = inherit.aes,
     params = list(na.rm = na.rm, ...))
 }
 
-#' Function to plot an Earthquake's Location timeline 
-#' The GeomTimeLine will use a dataframe obtained from the function eq_clean_data. 
+#' Function to plot an Earthquake's Location timeline
+#' The GeomTimeLine will use a dataframe obtained from the function eq_clean_data.
 #' This Geom will return a plot with the earthquakes of a country or countries between two dates
 GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                  #Required aesthetics
@@ -217,35 +217,35 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
                                  draw_panel = function(data, panel_scales, coord) {
                                    # Transform the data first
                                    coords <- coord$transform(data, panel_scales)
-                                   
+
                                    #a) Creating the timeline in the x-axis
-                                   Timeline_xaxis <- grid::polylineGrob(x = grid::unit(rep(c(0, 1),length(coords$y)),"npc"), 
+                                   Timeline_xaxis <- grid::polylineGrob(x = grid::unit(rep(c(0, 1),length(coords$y)),"npc"),
                                                                         y = rep(coords$y, each = 2),
                                                                         id.length = rep(2,length(coords$y)),
                                                                         gp = grid::gpar(col = "black", lwd = 0.5, lty = 1))
-                                   
+
                                    #b) Creating a point for each Earthquake
                                    points <- grid::pointsGrob(
                                      x = coords$x,
                                      y = coords$y,
                                      pch = coords$shape,
                                      gp = grid::gpar(col = alpha(coords$colour, coords$alpha), fill = alpha(coords$fill, coords$alpha)
-                                                     
-                                                     
+
+
                                      ))
-                                   
+
                                    #Plotting a) y b)
                                    grid::gTree(children = grid::gList(Timeline_xaxis, points))
                                  })
 
 #' Function that add the Eartquakes's Location labels to an timeline earthquake
-#' @param mapping aesthetic mappings 
+#' @param mapping aesthetic mappings
 #' @param data dataframe that contains the Earthquake's data
 #' @param na.rm  removes the NA values from the data frame
-#' @param position position adjustment 
-#' @param stat The Layer's statistical transformation 
+#' @param position position adjustment
+#' @param stat The Layer's statistical transformation
 #' @param show.legend layer's legend
-#' @param inherit.aes indicate the default aesthetics 
+#' @param inherit.aes indicate the default aesthetics
 #' @param ... other arguments
 #' @return Plot an Earthquakes timeline which contains the Earthquakes of a country o countries  between two dates
 #' @import ggplot2
@@ -278,7 +278,7 @@ geom_timeline_label <- function(mapping = NULL,
   )
 }
 
-#' Function to add labels on a Earthquake's Location timeline 
+#' Function to add labels on a Earthquake's Location timeline
 #' This Geom will return a plot with the earthquakes of a country or countries between two dates with its respectives names
 GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Geom,
                                            #Required aesthetics
@@ -289,10 +289,10 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
                                                                       max_aes = NULL),
                                            #Draw panel
                                            draw_panel = function(data, panel_scales, coord) {
-                                             
+
                                              # Transform the data
                                              coords <- coord$transform(data, panel_scales)
-                                             
+
                                              #a) Creating the location where the names will be
                                              Timeline_loc <- grid::segmentsGrob(x0 = grid::unit(coords$x, "npc"),
                                                                                 y0 = grid::unit(coords$y, "npc"),
@@ -303,7 +303,7 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
                                                                                 name = NULL,
                                                                                 gp = grid::gpar(),
                                                                                 vp = NULL)
-                                             
+
                                              #2) Adding Text
                                              text <- grid::textGrob(label = coords$label,
                                                                     x = unit(coords$x, "npc"),
@@ -311,7 +311,7 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
                                                                     rot = 60,
                                                                     just = "left",
                                                                     gp = grid::gpar(fontsize = 8))
-                                             
+
                                              # Plotting a) and b)
                                              grid::gTree(children = grid::gList(Timeline_loc, text))
                                            }
@@ -331,6 +331,7 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
 #' @note If an invalid column name is provided, the function provides a warning
 #' and uses the LOCATION_NAME column as teh annotation column.
 #'
+#' @importFrom magrittr "%>%"
 #' @import leaflet
 #'
 #' @examples
@@ -350,9 +351,9 @@ eq_map <- function(data,name_col){
   }
   a <- which(name_col==names(data))
   data1 <- as.data.frame(data)
-  leaflet(data = data) %>%
-    addTiles() %>%  
-    addMarkers(lng=data$LONGITUDE, lat=data$LATITUDE, popup=as.character(data1[,a]))
+  leaflet::leaflet(data = data) %>%
+    leaflet::addTiles() %>%
+    leaflet::addMarkers(lng=data$LONGITUDE, lat=data$LATITUDE, popup=as.character(data1[,a]))
 }
 
 #' Function that creates a popup text for each earthquake.

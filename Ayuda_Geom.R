@@ -361,7 +361,9 @@ ggplot() +
 
 #GRAFICO TERREMOTOS CON NOMBRES
 #GEOMTIMELABEL
-ggplot(data3_1) +
+eq_location_clean(eq_clean_data(eq_read_data(filename))) %>%
+  dplyr::filter(DATE >= "1980-01-01" & DATE <="2016-01-01" & COUNTRY == c("USA","CHILE", "VENEZUELA")) %>% 
+ggplot() +
   geom_timeline(aes(x = DATE, y = COUNTRY, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS)) +
   geom_timeline_label(aes(x = DATE, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
 
