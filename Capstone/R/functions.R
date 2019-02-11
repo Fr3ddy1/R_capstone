@@ -16,7 +16,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_read_data(file)
 #' }
 #' @export
@@ -37,7 +37,7 @@ eq_read_data <- function(filename) {
 #' @return  dataframe with a new DATE, LATITUDE and LONGITUDE column
 #' @examples
 #' \dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_clean_data(eq_read_data(file))
 #' }
 #'
@@ -89,7 +89,7 @@ eq_clean_data <- function(data){
 #' @importFrom tools toTitleCase
 #'@examples
 #'\dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file)))
 #' }
 #'
@@ -158,7 +158,7 @@ eq_location_clean <- function(data){
   return(data)
 }
 
-# Function that will use the GeomTimeLine Prototype Function required to Plot a Timeline with the Earthquakes of a given country
+#' Function that will use the GeomTimeLine Prototype Function required to Plot a Timeline with the Earthquakes of a given country
 #' @param mapping aesthetic mappings
 #' @param data dataframe that contains the Earthquake's data
 #' @param na.rm  removes the NA values from the data frame
@@ -171,9 +171,10 @@ eq_location_clean <- function(data){
 #' @import ggplot2
 #' @examples
 #' \dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-#' dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
+#' dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" &
+#' COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
 #' ggplot() +
 #' geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 #' }
@@ -251,12 +252,14 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", ggplot2::Geom,
 #' @import ggplot2
 #' @examples
 #' \dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
-#' dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" & COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
+#' dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" &
+#' COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
 #' ggplot() +
 #' geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))+
-#' geom_timeline_label(aes(x = DATE, y = COUNTRY, label = LOCATION_NAME, number = 3, max_aes = EQ_MAG_ML))
+#' geom_timeline_label(aes(x = DATE, y = COUNTRY, label = LOCATION_NAME,
+#' number = 3, max_aes = EQ_MAG_ML))
 #'}
 #' @export
 geom_timeline_label <- function(mapping = NULL,
@@ -336,7 +339,7 @@ GeomTimeLineAnnotation <- ggplot2::ggproto("GeomTimeLineAnnotation", ggplot2::Ge
 #'
 #' @examples
 #' \dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
 #' dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(DATE) >= 1980) %>%
 #' eq_map(name_col = "DATE")
@@ -365,7 +368,7 @@ eq_map <- function(data,name_col){
 #'
 #' @examples
 #' \dontrun{
-#' file<-system.file("data","earthquakes_data.txt.zip",package="Capstone")
+#' file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #' eq_location_clean(eq_clean_data(eq_read_data(file))) %>%
 #' dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(DATE) >= 1980) %>%
 #' dplyr::mutate(popup_text = eq_create_label(.)) %>%
