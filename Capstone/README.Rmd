@@ -1,27 +1,23 @@
 ---
-title: "Mastering Software Development in R Capstone"
-author: "Freddy F. Tapia C."
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: github_document
 ---
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
 )
 ```
-
-## Package's Description
+# Capstone
 
 This package provides several functions in order to work with The NOAA Significant Earthquake Database, which contains historical data of earthquakes around the world, that data cotains several information, like magnitude, number of deaths, localization, date, among others. The purpose of this package is provide functions to work with this data, using all the tools that the previous courses of the Mastering Software Development in R taught us.
 
-## Instalation process
+
+## Installation
 
 This package is available on GitHub and using the devtools package can be installed:
 
@@ -31,8 +27,10 @@ install_github("Fr3ddy1/Mastering-Software-Development-in-R-Capstone")
 library(capstone)
 ```
 
-## Clean and get the data
+## Examples
 
+### eq_clean_data and eq_location_clean functions
+ 
 The NOAA Earthquakes Data can be downloaded from the NOAA web site or can be use from the extdata folder of this package (earthquakes_data.txt.zip or signif.txt.tsv File).  
 
 In order to clean this data two functions were created The eq_clean_data() and  eq_location_clean function, the first one generate a datetime column where it unite the day, month, year and hour information of each observation, converts to numeric data a set of columns (LATITUDE, LONGITUDE). On the other hand, the eq_location_clean function to remove the Country from the LOCATION_NAME column.
@@ -50,7 +48,7 @@ eq_location_clean(eq_clean_data(eq_read_data(file)))
 ```
 
 
-## Plot specific data in a timeline 
+## Geoms
 
 After reading and cleaning the earthquakes Data Set, this information or data can be displayed in a timeline plot, using the geom funcions designed for that task. This functions or geoms were created during the second week of the course.
 
@@ -86,7 +84,7 @@ geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 
 
 
-## Plot an interactive map 
+## Interactive map 
 
 In order to display the earthquakes data in an interactive map the leaflet package can be used. To achieve that goal the LATITUDE and LONGITUDE column were used to locate each event. The eq_map() function is the tool to do this work. This function contains the "name_col" argument which let show information about the earthquake, like location, magnitude, or number of deaths.
 

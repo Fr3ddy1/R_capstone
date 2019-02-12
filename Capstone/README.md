@@ -1,44 +1,31 @@
----
-title: "Mastering Software Development in R Capstone"
-author: "Freddy F. Tapia C."
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
 
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
-## Package's Description
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+Capstone
+========
 
 This package provides several functions in order to work with The NOAA Significant Earthquake Database, which contains historical data of earthquakes around the world, that data cotains several information, like magnitude, number of deaths, localization, date, among others. The purpose of this package is provide functions to work with this data, using all the tools that the previous courses of the Mastering Software Development in R taught us.
 
-## Instalation process
+Installation
+------------
 
 This package is available on GitHub and using the devtools package can be installed:
 
-```{r eval = FALSE}
+``` r
 library(devtools)
 install_github("Fr3ddy1/Mastering-Software-Development-in-R-Capstone")
 library(capstone)
 ```
 
-## Clean and get the data
+Examples
+--------
 
-The NOAA Earthquakes Data can be downloaded from the NOAA web site or can be use from the extdata folder of this package (earthquakes_data.txt.zip or signif.txt.tsv File).  
+### eq\_clean\_data and eq\_location\_clean functions
 
-In order to clean this data two functions were created The eq_clean_data() and  eq_location_clean function, the first one generate a datetime column where it unite the day, month, year and hour information of each observation, converts to numeric data a set of columns (LATITUDE, LONGITUDE). On the other hand, the eq_location_clean function to remove the Country from the LOCATION_NAME column.
+The NOAA Earthquakes Data can be downloaded from the NOAA web site or can be use from the extdata folder of this package (earthquakes\_data.txt.zip or signif.txt.tsv File).
 
+In order to clean this data two functions were created The eq\_clean\_data() and eq\_location\_clean function, the first one generate a datetime column where it unite the day, month, year and hour information of each observation, converts to numeric data a set of columns (LATITUDE, LONGITUDE). On the other hand, the eq\_location\_clean function to remove the Country from the LOCATION\_NAME column.
 
-```{r eval = FALSE}
+``` r
 #set the location of the file
 file<-system.file("extdata","earthquakes_data.txt.zip",package="Captsone")
 #read the data 
@@ -49,17 +36,16 @@ data_clean <- eq_clean_data(eq_read_data(file))
 eq_location_clean(eq_clean_data(eq_read_data(file)))
 ```
 
-
-## Plot specific data in a timeline 
+Geoms
+-----
 
 After reading and cleaning the earthquakes Data Set, this information or data can be displayed in a timeline plot, using the geom funcions designed for that task. This functions or geoms were created during the second week of the course.
 
-The first geom created were the geom_timeline which displays a timeline of earthquakes for one or several country and for a specific time range. The second geom were geom_timeline_label which displays the names of each location were the incident ocurred.
+The first geom created were the geom\_timeline which displays a timeline of earthquakes for one or several country and for a specific time range. The second geom were geom\_timeline\_label which displays the names of each location were the incident ocurred.
 
-In order to obtaind a specific data to apply the geom, the data obtained from the eq_clean_data() and eq_location_clean() functions were filtered. And example to display the earthquakes in Ecuador, Chile y Venezuela from February 1986 to June 2016 is:
+In order to obtaind a specific data to apply the geom, the data obtained from the eq\_clean\_data() and eq\_location\_clean() functions were filtered. And example to display the earthquakes in Ecuador, Chile y Venezuela from February 1986 to June 2016 is:
 
-
-```{r eval = FALSE}
+``` r
 #set the name of the file
 file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #generate the timeline
@@ -72,7 +58,7 @@ geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
 
 To display the earthquakes in Ecuador, Chile y Venezuela from February 1986 to June 2016 with labels:
 
-```{r eval = FALSE}
+``` r
 #set the name of the file
 file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #generate the timeline
@@ -81,18 +67,16 @@ dplyr::filter(DATE >= "1986-02-01" & DATE <="2016-06-01" &
 COUNTRY == c("ECUADOR","CHILE", "VENEZUELA"))%>%
 ggplot() +
 geom_timeline(aes(x = DATE, size = EQ_MAG_ML, colour = DEATHS, fill = DEATHS))
-
 ```
 
+Interactive map
+---------------
 
-
-## Plot an interactive map 
-
-In order to display the earthquakes data in an interactive map the leaflet package can be used. To achieve that goal the LATITUDE and LONGITUDE column were used to locate each event. The eq_map() function is the tool to do this work. This function contains the "name_col" argument which let show information about the earthquake, like location, magnitude, or number of deaths.
+In order to display the earthquakes data in an interactive map the leaflet package can be used. To achieve that goal the LATITUDE and LONGITUDE column were used to locate each event. The eq\_map() function is the tool to do this work. This function contains the "name\_col" argument which let show information about the earthquake, like location, magnitude, or number of deaths.
 
 To display a map of Earthquakes in Venezuela after 1980:
 
-```{r eval=FALSE}
+``` r
 #set the name of the file
 file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #plot the interactive map
@@ -101,11 +85,9 @@ dplyr::filter(COUNTRY == "VENEZUELA" & lubridate::year(DATE) >= 1980) %>%
 eq_map(name_col = "DATE")
 ```
 
+In order to obtain a label in a specific format the function eq\_create\_label were created. This function show information about the location, date and number of deaths of each earthquake ploted. To display a map of Earthquakes in Venezuela after 1980, with this label:
 
-In order to obtain a label in a specific format the function eq_create_label were created. This function show information about the location, date and number of deaths of each earthquake ploted. To display a map of Earthquakes in Venezuela after 1980, with this label:
-
-
-```{r eval = FALSE}
+``` r
 #set the name of the file
 file<-system.file("extdata","earthquakes_data.txt.zip",package="Capstone")
 #plot the interactive map with labels
@@ -114,5 +96,3 @@ dplyr::filter(COUNTRY == "MEXICO" & lubridate::year(DATE) >= 1980) %>%
 dplyr::mutate(popup_text = eq_create_label(.)) %>%
 eq_map(name_col = "popup_text")
 ```
-
-
