@@ -48,7 +48,8 @@ eq_clean_data <- function(data){
 
   #add new column
   #data$DATE<-NULL
-  data <- tidyr::unite(data,data$DATE,data$YEAR, data$MONTH, data$DAY, data$HOUR)
+  #data <- tidyr::unite(data,"DATE",data$YEAR, data$MONTH, data$DAY, data$HOUR)
+  data <- tidyr::unite(data,"DATE",5, 6, 7, 8)
   data$DATE <- lubridate::ymd_h(data$DATE)
 
   #data$DATE <- paste(data$DAY,data$MONTH,data$YEAR,sep = "/")
